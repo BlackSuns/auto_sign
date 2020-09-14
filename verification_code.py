@@ -111,7 +111,7 @@ class VerificationCode:
         image = self.delete_spot()
         result_array = []
         image_split_array = str_split(image)
-        pytesseract.pytesseract.tesseract_cmd = r"E:\tesseract\Tesseract-OCR\tesseract.exe"
+        pytesseract.pytesseract.tesseract_cmd = r"E:\tesseract\Tesseract-OCR\tesseract.exe"  # 更换成自己的tesseract安装位置
         for each in image_split_array:
             result = pytesseract.image_to_string(each, config="-psm 10")  # 图片转文字
             result = re.sub(u"([^\u4e00-\u9fa5\u0030-\u0039\u0041-\u005a\u0061-\u007a])", "", result)  # 去除识别出来的特殊字符

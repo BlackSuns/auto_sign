@@ -27,19 +27,19 @@ class DaKa:
         # self.driver = webdriver.Chrome(options=chrome_options)  # 窗口不弹出
         self.driver = webdriver.Chrome()
 
-    def register(self):
-        register_result = False
+    def login(self):
+        login_result = False
         self.driver.get(self.reg_url)  # 打开登录界面，需要关掉电脑的代理设置
-        time.sleep(2)
+        time.sleep(4)
 
         self.driver.save_screenshot('pictures.png')
-        ver_code_pos = (1388, 291, 1505, 333)  # 验证码位置(left,top,right,bottom)
+        ver_code_pos = (1388, 291, 1505, 333)  # 验证码位置(left,top,right,bottom)，需根据自己的屏幕分辨率调整截图位置
         ver_code = VerificationCode('pictures.png', ver_code_pos)
         uid = self.user_info['uid']
         pwd = self.user_info['pwd']
         vercode = ver_code.image_str()
         if vercode is None:
-            return register_result
+            return login_result
 
         self.driver.find_element_by_xpath("//input[@placeholder='请输入学号']").send_keys(uid)
         self.driver.find_element_by_xpath("//input[@placeholder='请输入密码']").send_keys(pwd)
@@ -51,13 +51,14 @@ class DaKa:
 
         # 判断网页是否跳转
         if self.driver.current_url != last_url:
-            register_result = True
+            login_result = True
             self.driver.switch_to.window(self.driver.window_handles[0])  # 跳转页面
         else:
-            register_result = False
-        return register_result
+            login_result = False
+        return login_result
 
     def daka(self):
+        result = True
         self.driver.find_element_by_xpath("/html/body/div[1]/div/div[1]/div[2]/a").click()
         time.sleep(3)
         self.driver.switch_to.window(self.driver.window_handles[0])  # 跳转页面
@@ -66,13 +67,12 @@ class DaKa:
         if 7 <= t < 9:
             self.driver.find_element_by_xpath("/html/body/div[1]/div/div[2]/div[3]/button").click()
             self.send_email("早晨体温打卡成功")
-        if 12 <= t < 14:
+        elif 12 <= t < 14:
             self.driver.find_element_by_xpath("/html/body/div[1]/div/div[2]/div[5]/button").click()
             self.send_email("中午体温打卡成功")
-        if 20 <= t < 22:
+        elif 20 <= t < 22:
             self.driver.find_element_by_xpath("/html/body/div[1]/div/div[2]/div[7]/button").click()
             self.send_email("晚上体温打卡成功")
-            result = True
         else:
             print("未到打卡时间")
             self.send_email("发生错误，未到打卡时间打卡")
@@ -81,7 +81,7 @@ class DaKa:
         return result
 
     def send_email(self, msg):
-        my_sender = '**********'  # 发件人邮箱账号
+        my_sender = '********'  # 发件人邮箱账号
         my_user = self.user_info['mail']  # 收件人邮箱账号
         qq_code = '**********'
         smtp_server = 'smtp.qq.com'
@@ -107,8 +107,8 @@ class DaKa:
 
 
 def main():
-    register_url = r'http://xsgl.gdut.edu.cn/index.php/mobile/student/task-temperature?version-checking-redirection=8' \
-                   r'.473923891538044 '
+    login_url = r'http://xsgl.gdut.edu.cn/index.php/mobile/student/task-temperature?version-checking-redirection=8' \
+                r'.473923891538044 '
 
     file = open("user_info.json", encoding="utf-8")
     info = json.load(file)
@@ -118,8 +118,8 @@ def main():
         times = 10
         result = False
         while times >= 0:
-            my_daka = DaKa(register_url, each_user)
-            if my_daka.register():
+            my_daka = DaKa(login_url, each_user)
+            if my_daka.login():
                 result = my_daka.daka()
                 break
             else:
